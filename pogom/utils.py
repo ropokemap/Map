@@ -739,7 +739,7 @@ def get_args():
         # IV/CP scanning.
         if args.enc_whitelist_file:
             with open(args.enc_whitelist_file) as f:
-                args.enc_whitelist = frozenset([int(l.strip()) for l in f])
+                args.enc_whitelist = frozenset([int(l.split('#')[0].strip()) for l in f])
 
         # Make max workers equal number of accounts if unspecified, and disable
         # account switching.
@@ -762,11 +762,11 @@ def get_args():
         if args.webhook_whitelist_file:
             with open(args.webhook_whitelist_file) as f:
                 args.webhook_whitelist = frozenset(
-                    [int(p_id.strip()) for p_id in f])
+                    [int(p_id.split('#')[0].strip()) for p_id in f])
         elif args.webhook_blacklist_file:
             with open(args.webhook_blacklist_file) as f:
                 args.webhook_blacklist = frozenset(
-                    [int(p_id.strip()) for p_id in f])
+                    [int(p_id.split('#')[0].strip()) for p_id in f])
         else:
             args.webhook_blacklist = frozenset(
                 [int(i) for i in args.webhook_blacklist])
