@@ -6,6 +6,8 @@ import logging
 import gc
 
 from datetime import datetime
+from pogom.pgscout import scout_error, pgscout_encounter
+from pogom.utils import get_args, get_pokemon_name
 from s2sphere import LatLng
 from bisect import bisect_left
 from flask import Flask, abort, jsonify, render_template, request,\
@@ -72,6 +74,7 @@ class Pogom(Flask):
         self.json_encoder = CustomJSONEncoder
         self.route("/", methods=['GET'])(self.fullmap)
         self.route("/raw_data", methods=['GET'])(self.raw_data)
+        self.route("/scout", methods=['GET'])(self.scout_pokemon)
         self.route("/loc", methods=['GET'])(self.loc)
         self.route("/next_loc", methods=['POST'])(self.next_loc)
         self.route("/mobile", methods=['GET'])(self.list_pokemon)
@@ -92,6 +95,58 @@ class Pogom(Flask):
 
     def render_robots_txt(self):
         return render_template('robots.txt')
+    
+    def scout_pokemon(self):
+        args = get_args()
+        if args.pgscout_url:
+            encounterId = request.args.get('encounter_id')
+            p = Pokemon.get(Pokemon.encounter_id == encounterId)
+            pokemon_name = get_pokemon_name(p.pokemon_id)
+            log.info(
+                "On demand PGScouting a {} at {}, {}.".format(pokemon_name,
+                                                            p.latitude,
+                                                            p.longitude))
+            scout_result = pgscout_encounter(p)
+            if scout_result['success']:
+                self.update_scouted_pokemon(p, scout_result)
+                log.info(
+                    "Successfully PGScouted a {:.1f}% lvl {} {} with {} CP ("
+                    "scout level {}).".format(
+                        scout_result['iv_percent'], scout_result['level'],
+                        pokemon_name, scout_result['cp'],
+                        scout_result['scout_level']))
+            else:
+                scout_result = scout_error("PGScout URL not configured.")
+        return jsonify(scout_result)
+ 
+    def update_scouted_pokemon(self, p, response):
+        # Update database
+        update_data = {
+            p.encounter_id: {
+                'encounter_id': p.encounter_id,
+                'spawnpoint_id': p.spawnpoint_id,
+                'pokemon_id': p.pokemon_id,
+                'latitude': p.latitude,
+                'longitude': p.longitude,
+                'disappear_time': p.disappear_time,
+                'individual_attack': response['iv_attack'],
+                'individual_defense': response['iv_defense'],
+                'individual_stamina': response['iv_stamina'],
+                'move_1': response['move_1'],
+                'move_2': response['move_2'],
+                'height': response['height'],
+                'weight': response['weight'],
+                'gender': response['gender'],
+                'cp': response['cp'],
+                'level': response['level'],
+                'catch_prob_1': response['catch_prob_1'],
+                'catch_prob_2': response['catch_prob_2'],
+                'catch_prob_3': response['catch_prob_3'],
+                'rating_attack': response['rating_attack'],
+                'rating_defense': response['rating_defense']
+            }
+        }
+        self.db_updates_queue.put((Pokemon, update_data))
 
     def render_service_worker_js(self):
         return send_from_directory('static/dist/js', 'serviceWorker.min.js')
@@ -157,6 +212,9 @@ class Pogom(Flask):
 
     def set_control_flags(self, control):
         self.control_flags = control
+        
+    def set_db_updates_queue(self, db_updates_queue):
+        self.db_updates_queue = db_updates_queue
 
     def set_heartbeat_control(self, heartb):
         self.heartbeat = heartb

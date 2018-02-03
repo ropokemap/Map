@@ -61,6 +61,8 @@ def get_args():
                         is_config_file=True, help='Set configuration file')
     parser.add_argument('-scf', '--shared-config',
                         is_config_file=True, help='Set a shared config')
+    parser.add_argument('-pgsu', '--pgscout-url', default=None,
+                        help='URL to query PGScout for Pokemon IV/CP.')
     parser.add_argument('-a', '--auth-service', type=str.lower,
                         action='append', default=[],
                         help=('Auth Services, either one for all accounts ' +
