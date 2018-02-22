@@ -106,7 +106,7 @@ class Pokemon(LatLongModel):
     # We are base64 encoding the ids delivered by the api
     # because they are too big for sqlite to handle.
     encounter_id = UBigIntegerField(primary_key=True)
-    pokemon_worker = Utf8mb4CharField(null=True, max_length=50)
+    zone_id = Utf8mb4CharField(null=True, max_length=50)
     spawnpoint_id = UBigIntegerField(index=True)
     pokemon_id = SmallIntegerField(index=True)
     latitude = DoubleField()
@@ -426,7 +426,7 @@ class Pokestop(LatLongModel):
 
 class Gym(LatLongModel):
     gym_id = Utf8mb4CharField(primary_key=True, max_length=50)
-    gym_worker = Utf8mb4CharField(null=True, max_length=50)
+    zone_id = Utf8mb4CharField(null=True, max_length=50)
     team_id = SmallIntegerField()
     guard_pokemon_id = SmallIntegerField()
     slots_available = SmallIntegerField()
@@ -631,7 +631,7 @@ class Gym(LatLongModel):
 
 class Raid(BaseModel):
     gym_id = Utf8mb4CharField(primary_key=True, max_length=50)
-    raid_worker = Utf8mb4CharField(null=True, max_length=50)
+    zone_id = Utf8mb4CharField(null=True, max_length=50)
     level = IntegerField(index=True)
     spawn = DateTimeField(index=True)
     start = DateTimeField(index=True)
@@ -1151,7 +1151,7 @@ class WorkerStatus(LatLongModel):
 
 class SpawnPoint(LatLongModel):
     id = UBigIntegerField(primary_key=True)
-    spawnpoint_worker =  Utf8mb4CharField(null=True, max_length=50)
+    zone_id =  Utf8mb4CharField(null=True, max_length=50)
     latitude = DoubleField()
     longitude = DoubleField()
     last_scanned = DateTimeField(index=True)
@@ -1907,7 +1907,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                                       p.longitude)
             spawn_points[spawn_id] = sp
             sp['missed_count'] = 0
-            sp['spawnpoint_worker'] = status['worker_name']
+            sp['zone_id'] = status['worker_name']
 
             sighting = {
                 'encounter_id': p.encounter_id,
@@ -2001,7 +2001,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
             pokemon[p.encounter_id] = {
                 'encounter_id': p.encounter_id,
-                'pokemon_worker': status['worker_name'],
+                'zone_id': status['worker_name'],
                 'spawnpoint_id': spawn_id,
                 'pokemon_id': pokemon_id,
                 'latitude': p.latitude,
@@ -2162,7 +2162,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 gyms[f.id] = {
                     'gym_id':
                         f.id,
-                    'gym_worker':
+                    'zone_id':
                         status['worker_name'],
                     'team_id':
                         f.owned_by_team,
@@ -2187,7 +2187,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     if f.HasField('raid_info'):
                         raids[f.id] = {
                             'gym_id': f.id,
-                            'raid_worker': status['worker_name'],
+                            'zone_id': status['worker_name'],
                             'level': raid_info.raid_level,
                             'spawn': datetime.utcfromtimestamp(
                                 raid_info.raid_spawn_ms / 1000.0),
@@ -2267,7 +2267,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
             endpoints = SpawnPoint.start_end(sp, args.spawn_delay)
             if clock_between(endpoints[0], now_secs, endpoints[1]):
                 sp['missed_count'] += 1
-                sp['spawnpoint_worker'] = status['worker_name']
+                sp['zone_id'] = status['worker_name']
                 spawn_points[sp['id']] = sp
                 log.warning('%s kind spawnpoint %s has no Pokemon %d times'
                             ' in a row.',
