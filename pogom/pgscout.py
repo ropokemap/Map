@@ -1,6 +1,6 @@
 import logging
 import sys
-import base64
+from base64 import b64encode
 
 import requests
 
