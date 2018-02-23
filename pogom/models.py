@@ -7,7 +7,7 @@ import calendar
 import sys
 import gc
 import time
-import base64
+from base64 import b64encode
 import math
 
 from peewee import (InsertQuery, Check, CompositeKey, ForeignKeyField,
