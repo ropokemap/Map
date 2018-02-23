@@ -28,7 +28,6 @@ import requests
 import schedulers
 import terminalsize
 import timeit
-from base64 import b64encode
 import threading
 
 from datetime import datetime
