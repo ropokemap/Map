@@ -2056,7 +2056,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
             if args.db_not_maxiv_blacklist_file and pokemon_id in args.db_not_maxiv_blacklist:
                 if pokemon_info == False and scout_success == True:
-                    log.info('Ignoring Pokemon id: %i (in DB 100% blacklist but not scouted)', pokemon_id)
+                    log.info('Ignoring Pokemon id: %i (in DB iv_100 blacklist but not scouted)', pokemon_id)
                     filtered += 1
                     continue
                 skip = True
@@ -2067,9 +2067,9 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                         skip = false
                 if skip == True:
                     if pokemon_id==19:
-                        log.info('Ignoring Pokemon id: %i (in DB 100% blacklist but IV %d and rattata not tiny)', pokemon_id, iv)
+                        log.info('Ignoring Pokemon id: %i (in DB iv_100 blacklist but IV %d and rattata not tiny)', pokemon_id, iv)
                     else:
-                        log.info('Ignoring Pokemon id: %i (in DB 100% blacklist but IV %d)', pokemon_id, iv)
+                        log.info('Ignoring Pokemon id: %i (in DB iv_100 blacklist but IV %d)', pokemon_id, iv)
                     filtered += 1
                     continue
                     
