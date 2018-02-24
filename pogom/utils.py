@@ -63,6 +63,14 @@ def get_args():
                         is_config_file=True, help='Set a shared config')
     parser.add_argument('-pgsu', '--pgscout-url', default=None,
                         help='URL to query PGScout for Pokemon IV/CP.')
+    webhook_list.add_argument('-sn100blkf', '--db-not-100-blacklist-file',
+                              default='', help='File containing a list of '
+                                               'Pokemon IDs NOT to be saved into'
+                                               'DB unless 100%.')
+    webhook_list.add_argument('-sngoodblkf', '--db-interesting-blacklist-file',
+                              default='', help='File containing a list of '
+                                               'Pokemon IDs NOT to be saved into'
+                                               'DB unless evol interesting')
     parser.add_argument('-a', '--auth-service', type=str.lower,
                         action='append', default=[],
                         help=('Auth Services, either one for all accounts ' +
@@ -760,6 +768,15 @@ def get_args():
                   ": Error: no accounts specified. Use -a, -u, and -p or " +
                   "--accountcsv to add accounts.")
             sys.exit(1)
+
+        if args.db_not_100_blacklist_file:
+            with open(args.db_not_100_blacklist_file) as f:
+                args.db_not_100_blacklist = frozenset(
+                    [int(p_id.strip()) for p_id in f])
+        if args.db_not_good_blacklist_file:
+            with open(args.db_not_good_blacklist_file) as f:
+                args.db_not_good_blacklist = frozenset(
+                    [int(p_id.strip()) for p_id in f])
 
         if args.webhook_whitelist_file:
             with open(args.webhook_whitelist_file) as f:
