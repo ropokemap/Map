@@ -67,7 +67,7 @@ def get_args():
                               default='', help='File containing a list of '
                                                'Pokemon IDs NOT to be saved into'
                                                'DB unless 100%.')
-    webhook_list.add_argument('-sngoodblkf', '--db-interesting-blacklist-file',
+    webhook_list.add_argument('-sngoodblkf', '--db-trash-blacklist-file',
                               default='', help='File containing a list of '
                                                'Pokemon IDs NOT to be saved into'
                                                'DB unless evol interesting')
@@ -773,9 +773,9 @@ def get_args():
             with open(args.db_not_100_blacklist_file) as f:
                 args.db_not_100_blacklist = frozenset(
                     [int(p_id.strip()) for p_id in f])
-        if args.db_not_good_blacklist_file:
-            with open(args.db_not_good_blacklist_file) as f:
-                args.db_not_good_blacklist = frozenset(
+        if args.db_trash_blacklist_file:
+            with open(args.db_trash_blacklist_file) as f:
+                args.db_trash_blacklist = frozenset(
                     [int(p_id.strip()) for p_id in f])
 
         if args.webhook_whitelist_file:
