@@ -2028,11 +2028,11 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                scout_success = True
             
             poke_info = {                
-                'individual_attack': None,
-                'individual_defense': None,
-                'individual_stamina': None,
-                'cp_multiplier': None,
-                'weight': None
+                'individual_attack': 0,
+                'individual_defense': 0,
+                'individual_stamina': 0,
+                'cp_multiplier': 0,
+                'weight': 0
             }
             if pokemon_info:
                 poke_info.update({
