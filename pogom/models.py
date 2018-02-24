@@ -2052,7 +2052,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     'weight': float(scout_result['weight']),
                     'cp_multiplier': scout_result['cp_multiplier']
                 })
-            iv = round(poke_info['individual_attack'] + poke_info['individual_defense'] + poke_info['individual_stamina'])/45 *100,2)
+            iv = round((poke_info['individual_attack'] + poke_info['individual_defense'] + poke_info['individual_stamina'])/45 *100,2)
 
             if args.db_not_100_blacklist_file and pokemon_id in args.db_not_100_blacklist:
                 if pokemon_info == False and scout_success == True:
