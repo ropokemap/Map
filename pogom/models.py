@@ -2087,7 +2087,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     skip = False
                 if iv == 100:
                     skip = False
-                if skip == True
+                if skip == True:
                     if pokemon_id==19:
                         log.debug('Ignoring Pokemon id: %i (in DB trash blacklist but IV=%d and level=%i rattata not tiny)', pokemon_id, iv,level)
                     else:
