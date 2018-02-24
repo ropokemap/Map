@@ -63,11 +63,11 @@ def get_args():
                         is_config_file=True, help='Set a shared config')
     parser.add_argument('-pgsu', '--pgscout-url', default=None,
                         help='URL to query PGScout for Pokemon IV/CP.')
-    parser.add_argument('-sn100blkf', '--db-not-100-blacklist-file',
+    parser.add_argument('-dbnot100blkf', '--db-not-maxiv-blacklist-file',
                               default='', help='File containing a list of '
                                                'Pokemon IDs NOT to be saved into'
                                                'DB unless 100%.')
-    parser.add_argument('-sngoodblkf', '--db-trash-blacklist-file',
+    parser.add_argument('-dbtrsblkf', '--db-trash-blacklist-file',
                               default='', help='File containing a list of '
                                                'Pokemon IDs NOT to be saved into'
                                                'DB unless evol interesting')
@@ -772,11 +772,11 @@ def get_args():
         if args.db_not_100_blacklist_file:
             with open(args.db_not_100_blacklist_file) as f:
                 args.db_not_100_blacklist = frozenset(
-                    [int(p_id.strip()) for p_id in f])
+                    [int(p_id.split('#')[0].strip()) for p_id in f])
         if args.db_trash_blacklist_file:
             with open(args.db_trash_blacklist_file) as f:
                 args.db_trash_blacklist = frozenset(
-                    [int(p_id.strip()) for p_id in f])
+                    [int(p_id.split('#')[0].strip()) for p_id in f])
 
         if args.webhook_whitelist_file:
             with open(args.webhook_whitelist_file) as f:
