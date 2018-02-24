@@ -2017,13 +2017,84 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
             # Scan for IVs/CP and moves.
             pokemon_info = False
+            scout_success = False
             if args.encounter and (pokemon_id in args.enc_whitelist):
                 pokemon_info = encounter_pokemon(
                     args, p, account, api, account_sets, status, key_scheduler)
             if pokemon_info == False:
                 if args.pgscout_url and level < 30:
                     scout_result = perform_pgscout(p)
+            if scout_result and scout_result['success']:
+               scout_success = True
+            
+            poke_info = {                
+                'individual_attack': None,
+                'individual_defense': None,
+                'individual_stamina': None,
+                'cp_multiplier': None,
+                'weight': None
+            }
+            if pokemon_info:
+                poke_info.update({
+                    'individual_attack': float(pokemon_info.individual_attack),
+                    'individual_defense': float(pokemon_info.individual_defense),
+                    'individual_stamina': float(pokemon_info.individual_stamina),
+                    'height': float(pokemon_info.height_m),
+                    'weight': float(pokemon_info.weight_kg),
+                    'cp_multiplier': pokemon_info.cp_multiplier
+                })
+            if scout_success:
+                poke_info.update({
+                    'individual_attack': float(scout_result['iv_attack']),
+                    'individual_defense': float(scout_result['iv_defense']),
+                    'individual_stamina': float(scout_result['iv_stamina']),
+                    'height': float(scout_result['height']),
+                    'weight': float(scout_result['weight']),
+                    'cp_multiplier': scout_result['cp_multiplier']
+                })
+            iv = round(poke_info['individual_attack'] + poke_info['individual_defense'] + poke_info['individual_stamina'])/45 *100,2)
 
+            if args.db_not_100_blacklist_file and pokemon_id in args.db_not_100_blacklist:
+                if pokemon_info == False and scout_success == True:
+                    log.debug('Ignoring Pokemon id: %i (in DB 100% blacklist but not scouted)', pokemon_id)
+                    filtered += 1
+                    continue
+                skip = True
+                if iv >= 100
+                    skip = false
+                if pokemon_id==19: #tiny rattata
+                    if poke_info['weight'] <= 2.41:
+                        skip = false
+                if skip == True:
+                    if pokemon_id==19:
+                        log.debug('Ignoring Pokemon id: %i (in DB 100% blacklist but IV %d and rattata not tiny)', pokemon_id, iv)
+                    else:
+                        log.debug('Ignoring Pokemon id: %i (in DB 100% blacklist but IV %d)', pokemon_id, iv)
+                    filtered += 1
+                    continue
+                    
+            if args.db_trash_blacklist_file and pokemon_id in args.db_trash_blacklist:
+                if pokemon_info == False and scout_success == True:
+                    log.debug('Ignoring Pokemon id: %i (in DB trash blacklist but not scouted)', pokemon_id)
+                    filtered += 1
+                    continue
+                level: calc_pokemon_level(poke_info['cp_multiplier'])
+                skip = True
+                if pokemon_id==19: #tiny rattata
+                    if poke_info['weight'] <= 2.41:
+                        skip = false
+                if iv > 90 and level > 25:
+                    skip = False
+                if iv == 100:
+                    skip = False
+                if skip == True
+                    if pokemon_id==19:
+                        log.debug('Ignoring Pokemon id: %i (in DB trash blacklist but IV=%d and level=%i rattata not tiny)', pokemon_id, iv,level)
+                    else:
+                        log.debug('Ignoring Pokemon id: %i (in DB trash blacklist but IV=%d and level=%i)', pokemon_id, iv,level)
+                    filtered += 1
+                    continue
+                    
             pokemon[p.encounter_id] = {
                 'encounter_id': p.encounter_id,
                 'spawnpoint_id': spawn_id,
