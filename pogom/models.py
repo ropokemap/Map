@@ -2054,7 +2054,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 })
             iv = round((poke_info['individual_attack'] + poke_info['individual_defense'] + poke_info['individual_stamina'])/45 *100,2)
 
-            if args.db_not_100_blacklist_file and pokemon_id in args.db_not_100_blacklist:
+            if args.db_not_maxiv_blacklist_file and pokemon_id in args.db_not_maxiv_blacklist:
                 if pokemon_info == False and scout_success == True:
                     log.debug('Ignoring Pokemon id: %i (in DB 100% blacklist but not scouted)', pokemon_id)
                     filtered += 1
