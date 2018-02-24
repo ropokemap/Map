@@ -63,11 +63,11 @@ def get_args():
                         is_config_file=True, help='Set a shared config')
     parser.add_argument('-pgsu', '--pgscout-url', default=None,
                         help='URL to query PGScout for Pokemon IV/CP.')
-    webhook_list.add_argument('-sn100blkf', '--db-not-100-blacklist-file',
+    parser.add_argument('-sn100blkf', '--db-not-100-blacklist-file',
                               default='', help='File containing a list of '
                                                'Pokemon IDs NOT to be saved into'
                                                'DB unless 100%.')
-    webhook_list.add_argument('-sngoodblkf', '--db-trash-blacklist-file',
+    parser.add_argument('-sngoodblkf', '--db-trash-blacklist-file',
                               default='', help='File containing a list of '
                                                'Pokemon IDs NOT to be saved into'
                                                'DB unless evol interesting')
