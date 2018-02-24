@@ -2060,7 +2060,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     filtered += 1
                     continue
                 skip = True
-                if iv >= 100
+                if iv >= 100:
                     skip = false
                 if pokemon_id==19: #tiny rattata
                     if poke_info['weight'] <= 2.41:
@@ -2078,7 +2078,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     log.debug('Ignoring Pokemon id: %i (in DB trash blacklist but not scouted)', pokemon_id)
                     filtered += 1
                     continue
-                level: calc_pokemon_level(poke_info['cp_multiplier'])
+                level = calc_pokemon_level(poke_info['cp_multiplier'])
                 skip = True
                 if pokemon_id==19: #tiny rattata
                     if poke_info['weight'] <= 2.41:
