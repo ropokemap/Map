@@ -769,9 +769,9 @@ def get_args():
                   "--accountcsv to add accounts.")
             sys.exit(1)
 
-        if args.db_not_100_blacklist_file:
-            with open(args.db_not_100_blacklist_file) as f:
-                args.db_not_100_blacklist = frozenset(
+        if args.db_not_maxiv_blacklist_file:
+            with open(args.db_not_maxiv_blacklist_file) as f:
+                args.db_not_maxiv_blacklist = frozenset(
                     [int(p_id.split('#')[0].strip()) for p_id in f])
         if args.db_trash_blacklist_file:
             with open(args.db_trash_blacklist_file) as f:
