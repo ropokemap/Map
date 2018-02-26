@@ -2060,7 +2060,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     filtered += 1
                     continue
                 skip = True
-                if iv = 0:
+                if iv == 0:
                     skip = false
                 if iv >= 100:
                     skip = false
@@ -2087,7 +2087,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                         skip = false
                 if iv > 90 and level > 25:
                     skip = False
-                if iv = 0:
+                if iv == 0:
                     skip = false
                 if iv == 100:
                     skip = False
