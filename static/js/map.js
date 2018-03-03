@@ -1220,18 +1220,22 @@ function setupGymMarker(item) {
 
 function updateGymMarker(item, marker) {
     let raidLevel = getRaidLevel(item.raid)
-    if (item.raid && isOngoingRaid(item.raid) && Store.get('showRaids') && raidLevel >= Store.get('showRaidMinLevel') && raidLevel <= Store.get('showRaidMaxLevel')) {
-        var left=getTimeLeft(item['raid']['end']);
-        let markerImage = 'static/images/raid/' + gymTypes[item.team_id] + '_' + item.raid.level + '_unknown.png'
+    const hasActiveRaid = item.raid && item.raid.end > Date.now()
+    const raidLevelVisible = raidLevel >= Store.get('showRaidMinLevel') && raidLevel <= Store.get('showRaidMaxLevel')
+    const showRaidSetting = Store.get('showRaids') && (!Store.get('showActiveRaidsOnly') || !Store.get('showParkRaidsOnly'))
+
+    if (item.raid && isOngoingRaid(item.raid) && Store.get('showRaids') && raidLevelVisible) {
+		var timeLeft=getTimeLeft(item['raid']['end']);
+        let markerImage = 'static/images/raid/' + gymTypes[item.team_id] + '_' + item.raid.level + '_unknown_' + timeLeft + '.png'
         if (pokemonWithImages.indexOf(item.raid.pokemon_id) !== -1) {
-            markerImage = 'http://assets.raids.tk/timers/' + gymTypes[item.team_id] + '_' + item['raid']['pokemon_id'] + left + '.png'
+            markerImage = 'https://assets.raids.tk/timers/' + gymTypes[item.team_id] + '_' + item['raid']['pokemon_id'] + timeLeft + '.png'
         }
         marker.setIcon({
             url: markerImage,
             scaledSize: new google.maps.Size(48, 63)
         })
         marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1)
-    } else if (item.raid && item.raid.end > Date.now() && Store.get('showRaids') && !Store.get('showActiveRaidsOnly') && raidLevel >= Store.get('showRaidMinLevel') && raidLevel <= Store.get('showRaidMaxLevel')) {
+    } else if (hasActiveRaid && raidLevelVisible && showRaidSetting) {
         marker.setIcon({
             url: 'static/images/gym/' + gymTypes[item.team_id] + '_' + getGymLevel(item) + '_' + item['raid']['level'] + '.png',
             scaledSize: new google.maps.Size(48, 48)
