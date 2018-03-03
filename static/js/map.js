@@ -10,6 +10,8 @@ var $textLevelNotify
 var $selectStyle
 var $selectIconSize
 var $switchOpenGymsOnly
+var $switchParkGymsOnly
+var $switchParkRaidGymsOnly
 var $switchActiveRaidGymsOnly
 var $switchRaidMinLevel
 var $switchRaidMaxLevel
@@ -82,7 +84,7 @@ const cryFileTypes = ['wav', 'mp3']
 const genderType = ['♂', '♀', '⚲']
 const unownForm = ['unset', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', '?']
 const pokemonWithImages = [
-    2, 3, 5, 6, 8, 9, 11, 28, 31, 34, 38, 59, 62, 65, 68, 71, 73, 76, 82, 89, 91, 94, 103, 105, 110, 112, 123, 125, 126, 129, 131, 134, 135, 136, 137, 139, 143, 144, 145, 146, 150, 153, 156, 159, 243, 244, 245, 248, 249, 250, 302, 303, 306, 320, 359, 382, 383, 384
+    2, 3, 5, 6, 8, 9, 11, 28, 31, 34, 38, 59, 62, 65, 68, 71, 73, 76, 82, 87, 89, 91, 94, 103, 105, 110, 112, 123, 124, 125, 126, 129, 131, 134, 135, 136, 137, 139, 143, 144, 145, 146, 150, 153, 156, 159, 160, 184, 221, 243, 244, 245, 248, 249, 250, 302, 303, 306, 320, 333, 359, 361, 382, 383, 384
 ]
 
 const excludedRaritiesList = [
@@ -93,6 +95,8 @@ const excludedRaritiesList = [
   ['common', 'uncommon', 'rare', 'very rare'],
   ['common', 'uncommon', 'rare', 'very rare', 'ultra rare']
 ]
+
+const weatherEmojis = [ '', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁' ]
 
 /*
  text place holders:
@@ -478,11 +482,13 @@ function initSidebar() {
     $('#gyms-filter-wrapper').toggle(Store.get('showGyms'))
     $('#team-gyms-only-switch').val(Store.get('showTeamGymsOnly'))
     $('#raids-switch').prop('checked', Store.get('showRaids'))
+    $('#raid-park-gym-switch').prop('checked', Store.get('showParkRaidsOnly'))
     $('#raid-active-gym-switch').prop('checked', Store.get('showActiveRaidsOnly'))
     $('#raid-min-level-only-switch').val(Store.get('showRaidMinLevel'))
     $('#raid-max-level-only-switch').val(Store.get('showRaidMaxLevel'))
     $('#raids-filter-wrapper').toggle(Store.get('showRaids'))
     $('#open-gyms-only-switch').prop('checked', Store.get('showOpenGymsOnly'))
+    $('#park-gyms-only-switch').prop('checked', Store.get('showParkGymsOnly'))
     $('#min-level-gyms-filter-switch').val(Store.get('minGymLevel'))
     $('#max-level-gyms-filter-switch').val(Store.get('maxGymLevel'))
     $('#last-update-gyms-switch').val(Store.get('showLastUpdatedGymsOnly'))
@@ -538,7 +544,7 @@ function getTypeSpan(type) {
 function openMapDirections(lat, lng) { // eslint-disable-line no-unused-vars
     var url = ''
     if (Store.get('mapServiceProvider') === 'googlemaps') {
-        url = 'https://www.google.com/maps/?daddr=' + lat + ',' + lng
+        url = 'https://maps.google.com/maps?daddr=' + lat + ',' + lng
         window.open(url, '_blank')
     } else if (Store.get('mapServiceProvider') === 'applemaps') {
         url = 'https://maps.apple.com/maps?daddr=' + lat + ',' + lng
@@ -578,11 +584,17 @@ function pokemonLabel(item) {
     var form = item['form']
     var cp = item['cp']
     var cpMultiplier = item['cp_multiplier']
+    var weatherBoostedCondition = item['weather_boosted_condition']
+    var weatherDisplay = ''
     const showStats = Store.get('showPokemonStats')
 
     $.each(types, function (index, type) {
         typesDisplay += getTypeSpan(type)
     })
+
+    if (weatherBoostedCondition) {
+        weatherDisplay = `<span class="pokemon weather-boost">${weatherEmojis[weatherBoostedCondition]}</span>`
+    }
 
     var details = ''
 
@@ -595,7 +607,7 @@ function pokemonLabel(item) {
 
     contentstring += `
     <div class='pokemon name'>
-      ${name} <span class='pokemon name pokedex'><a href='http://pokemon.gameinfo.io/en/pokemon/${id}' target='_blank' title='View in Pokédex'>#${id}</a></span> ${formString} <span class='pokemon gender rarity'>${genderType[gender - 1]} ${rarityDisplay}</span> ${typesDisplay}
+      ${name} <span class='pokemon name pokedex'><a href='http://pokemon.gameinfo.io/en/pokemon/${id}' target='_blank' title='View in Pokédex'>#${id}</a></span> ${formString} <span class='pokemon gender rarity'>${genderType[gender - 1]} ${rarityDisplay}</span> ${typesDisplay} ${weatherDisplay}
     </div>`
 
     if (showStats && cp !== null && cpMultiplier !== null) {
@@ -1226,7 +1238,7 @@ function updateGymMarker(item, marker) {
 
     if (item.raid && isOngoingRaid(item.raid) && Store.get('showRaids') && raidLevelVisible) {
 		var timeLeft=getTimeLeft(item['raid']['end']);
-        let markerImage = 'static/images/raid/' + gymTypes[item.team_id] + '_' + item.raid.level + '_unknown_' + timeLeft + '.png'
+        let markerImage = 'static/images/raid/' + gymTypes[item.team_id] + '_' + item.raid.level + '_unknown' + timeLeft + '.png'
         if (pokemonWithImages.indexOf(item.raid.pokemon_id) !== -1) {
             markerImage = 'https://assets.raids.tk/timers/' + gymTypes[item.team_id] + '_' + item['raid']['pokemon_id'] + timeLeft + '.png'
         }
@@ -1828,10 +1840,24 @@ function processGym(i, item) {
         }
     }
 
+    if (Store.get('showParkGymsOnly')) {
+        if (!item.park) {
+            removeGymFromMap(item['gym_id'])
+            return true
+        }
+    }
+
     if (!Store.get('showGyms')) {
         if (Store.get('showRaids') && !isValidRaid(item.raid)) {
             removeGymFromMap(item['gym_id'])
             return true
+        }
+
+        if (Store.get('showParkRaidsOnly')) {
+            if (!item.park) {
+                removeGymFromMap(item['gym_id'])
+                return true
+            }
         }
 
         if (Store.get('showActiveRaidsOnly')) {
@@ -2561,6 +2587,22 @@ $(function () {
         updateMap()
     })
 
+    $switchParkGymsOnly = $('#park-gyms-only-switch')
+
+    $switchParkGymsOnly.on('change', function () {
+        Store.set('showParkGymsOnly', this.checked)
+        lastgyms = false
+        updateMap()
+    })
+
+    $switchParkRaidGymsOnly = $('#raid-park-gym-switch')
+
+    $switchParkRaidGymsOnly.on('change', function () {
+        Store.set('showParkRaidsOnly', this.checked)
+        lastgyms = false
+        updateMap()
+    })
+
     $switchActiveRaidGymsOnly = $('#raid-active-gym-switch')
 
     $switchActiveRaidGymsOnly.on('change', function () {
@@ -2945,9 +2987,11 @@ $(function () {
         Store.set('minGymLevel', 0)
         Store.set('maxGymLevel', 6)
         Store.set('showOpenGymsOnly', false)
+        Store.set('showParkGymsOnly', false)
 
         $('#team-gyms-only-switch').val(Store.get('showTeamGymsOnly'))
         $('#open-gyms-only-switch').prop('checked', Store.get('showOpenGymsOnly'))
+        $('#park-gyms-only-switch').prop('checked', Store.get('showParkGymsOnly'))
         $('#min-level-gyms-filter-switch').val(Store.get('minGymLevel'))
         $('#max-level-gyms-filter-switch').val(Store.get('maxGymLevel'))
 
