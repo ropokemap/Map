@@ -2041,11 +2041,11 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
             if args.encounter and (pokemon_id in args.enc_whitelist):
                 pokemon_info = encounter_pokemon(
                     args, p, account, api, account_sets, status, key_scheduler)
-            if pokemon_info == False:
-                if args.pgscout_url and level < 30:
-                    scout_result = perform_pgscout(p)
-            if scout_result and scout_result['success']:
-               scout_success = True
+                if pokemon_info == False:
+                    if args.pgscout_url and level < 30:
+                        scout_result = perform_pgscout(p)
+                        if scout_result and scout_result['success']:
+                           scout_success = True
 
             poke_info = {
                 'individual_attack': 0,
