@@ -90,6 +90,86 @@ class BaseModel(flaskDb.Model):
         return [m for m in cls.select().dicts()]
 
 
+class Users(BaseModel):
+    id                      = Utf8mb4CharField(max_length=255,primary_key=True)
+    username        = Utf8mb4CharField(max_length=255)
+    password            = Utf8mb4CharField(max_length=255)
+    email               = Utf8mb4CharField(max_length=255)
+    verified             = SmallIntegerField()
+    active                = SmallIntegerField()
+    active_until        = DateTimeField()
+    mod_timestamp   = Utf8mb4CharField(max_length=255)
+    extend                  = SmallIntegerField()
+    reminders               = SmallIntegerField()
+    last_sent_reminder = Utf8mb4CharField(max_length=255)
+    user_type               = SmallIntegerField()
+    comment                 = Utf8mb4CharField(max_length=255)
+
+
+        
+    @staticmethod
+    def get_user_by_id(userid):
+        query = Users.select(Users.id,
+                                Users.username, 
+                                Users.password,
+                                Users.email,
+                                Users.verified,
+                                Users.active,
+                                Users.active_until,
+                                Users.mod_timestamp,
+                                Users.extend,
+                                Users.reminders,
+                                Users.last_sent_reminder,
+                                Users.user_type,
+                                Users.comment
+                                )
+        query = (query
+                     .where(
+                        (Users.id == userid)&
+                        (Users.active == 1)&
+                        (Users.verified == 1)
+                        )
+                     .dicts())                     
+        return query[0] if len(list(query)) else False
+        
+    @staticmethod   
+    def get_user_by_name_and_pass(username, password):
+        query = Users.select(Users.id,
+                                Users.username, 
+                                Users.password,
+                                Users.email,
+                                Users.verified,
+                                Users.active,
+                                Users.active_until,
+                                Users.mod_timestamp,
+                                Users.extend,
+                                Users.reminders,
+                                Users.last_sent_reminder,
+                                Users.user_type,
+                                Users.comment
+                                )
+        query = (query
+                     .where(
+                        (Users.username == username) &
+                        (Users.password == password) &
+                        (Users.active == 1)&
+                        (Users.verified == 1)
+                        )
+                     .dicts())                     
+        return query[0] if len(list(query)) else False
+        
+    @staticmethod   
+    def get_user_by_name(username):
+        query = Users.select(Users.id,
+                                Users.username
+                                )
+        query = (query
+                     .where(
+                        (Users.username == username)
+                        )
+                     .dicts())                     
+        return query[0] if len(list(query)) else False
+
 class LatLongModel(BaseModel):
 
     @classmethod
