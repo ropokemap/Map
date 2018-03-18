@@ -311,7 +311,21 @@ def rpc_login_sequence(args, api, account):
                       e)
         raise LoginSequenceFail('Failed during login sequence.')
 
-    # 8 - Check if there are level up rewards to claim.
+    log.debug('Fetching News...')
+    try:  # 8 - Make an empty request to fetch all News.
+        req = api.create_request()
+        req.fetch_all_news()
+        send_generic_request(req, account, settings=True)
+
+        total_req += 1
+        time.sleep(random.uniform(.45, .7))
+    except Exception as e:
+        log.exception('Login for account %s failed. Exception while ' +
+                      'fetching all news: %s.', account['username'],
+                      e)
+        raise LoginSequenceFail('Failed during login sequence.')
+
+    # 9 - Check if there are level up rewards to claim.
     log.debug('Checking if there are level up rewards to claim...')
 
     try:
@@ -597,7 +611,7 @@ def clear_inventory(api, account):
             clear_response = resp['responses']['RECYCLE_INVENTORY_ITEM']
             clear_result = clear_response.result
             if clear_result == 1:
-                log.info('Clearing %s %ss succeeded.', item_count,
+                log.info('Clearing %s %ss succeeded.', drop_count,
                          item_name)
             elif clear_result == 2:
                 log.debug('Not enough items to clear, parsing failed.')
