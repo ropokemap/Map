@@ -262,7 +262,10 @@ class Pogom(Flask):
 
         map_lat = self.current_location[0]
         map_lng = self.current_location[1]
-
+        if user['active_until']=='2099-01-01'
+            display_active_until = False
+        else: 
+            display_active_until = user['active_until']
         return render_template('map.html',
                                lat=map_lat,
                                lng=map_lng,
@@ -270,7 +273,7 @@ class Pogom(Flask):
                                lang=args.locale,
                                show=visibility_flags,
                                username=user['username'],
-                               active_until=user['active_until']
+                               active_until=display_active_until
                                )
 
     def raw_data(self):
