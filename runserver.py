@@ -27,6 +27,7 @@ from pogom.models import (init_database, create_tables, drop_tables,
                           verify_table_encoding, verify_database_schema)
 from pogom.webhook import wh_updater
 
+from pogom.osm import update_ex_gyms
 from pogom.proxy import initialize_proxies
 from pogom.search import search_overseer_thread
 from time import strftime
@@ -66,6 +67,7 @@ log.addHandler(stderr_hdlr)
 try:
     import pgoapi
     from pgoapi import PGoApi, utilities as util
+    from pgoapi.hash_server import HashServer
 except ImportError:
     log.critical(
         "It seems `pgoapi` is not installed. Try running " +
@@ -191,7 +193,9 @@ def can_start_scanning(args):
         8302: 8300,
         8501: 8500,
         8705: 8700,
-        8901: 8900
+        8901: 8900,
+        9101: 9100,
+        9102: 9100
     }
     mapped_version_int = api_version_map.get(api_version_int, api_version_int)
 
@@ -278,6 +282,19 @@ def main():
     if not args.no_server and not validate_assets(args):
         sys.exit(1)
 
+    # Set hashing endpoint. 'bossland' doesn't need to be added here, it's
+    # the default in the API.
+    legal_endpoints = {
+        'devkat': 'https://hashing.devkat.org'
+    }
+
+    hash_service = args.hash_service.lower()
+    endpoint = legal_endpoints.get(hash_service, False)
+    if endpoint:
+        log.info('Using hash service: %s.', hash_service)
+        HashServer.endpoint = endpoint
+
+    # Make sure they are warned.
     if args.no_version_check and not args.only_server:
         log.warning('You are running RocketMap in No Version Check mode. '
                     "If you don't know what you're doing, this mode "
@@ -329,6 +346,15 @@ def main():
 
     args.root_path = os.path.dirname(os.path.abspath(__file__))
 
+    if args.ex_gyms:
+        # Geofence is required.
+        if not args.geofence_file:
+            log.critical('A geofence is required to find EX-gyms.')
+            sys.exit(1)
+        update_ex_gyms(args.geofence_file)
+        log.info('Finished checking gyms against OSM parks, exiting.')
+        sys.exit(1)
+
     # Control the search status (running or not) across threads.
     control_flags = {
       'on_demand': Event(),
@@ -360,7 +386,7 @@ def main():
         t.start()
 
     # Database cleaner; really only need one ever.
-    if args.enable_clean:
+    if args.db_cleanup:
         t = Thread(target=clean_db_loop, name='db-cleaner', args=(args,))
         t.daemon = True
         t.start()
@@ -506,9 +532,7 @@ def set_log_and_verbosity(log):
     if not os.path.exists(args.log_path):
         os.mkdir(args.log_path)
     if not args.no_file_logs:
-        date = strftime('%Y%m%d_%H%M')
-        filename = os.path.join(
-            args.log_path, '{}_{}.log'.format(date, args.status_name))
+        filename = os.path.join(args.log_path, args.log_filename)
         filelog = logging.FileHandler(filename)
         filelog.setFormatter(logging.Formatter(
             '%(asctime)s [%(threadName)18s][%(module)14s][%(levelname)8s] ' +
