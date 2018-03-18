@@ -9,13 +9,13 @@ from datetime import datetime
 from s2sphere import LatLng
 from bisect import bisect_left
 from flask import Flask, abort, jsonify, render_template, request,\
-    make_response, send_from_directory
+    make_response, redirect, send_from_directory
 from flask.json import JSONEncoder
 from flask_compress import Compress
 
 from .models import (Pokemon, Gym, Pokestop, ScannedLocation,
                      MainWorker, WorkerStatus, Token, HashKeys,
-                     SpawnPoint)
+                     SpawnPoint, Users)
 from .utils import (get_args, get_pokemon_name, get_pokemon_types,
                     now, dottedQuadToNum)
 from .transform import transform_from_wgs_to_gcj
@@ -85,7 +85,10 @@ class Pogom(Flask):
         self.route("/bookmarklet", methods=['GET'])(self.get_bookmarklet)
         self.route("/inject.js", methods=['GET'])(self.render_inject_js)
         self.route("/submit_token", methods=['POST'])(self.submit_token)
-        self.route("/get_stats", methods=['GET'])(self.get_account_stats)
+        self.route("/get_stats", methods=['GET'])(self.get_account_stats)        
+        self.route("/login", methods=['GET'])(self.render_login)
+        self.route("/dologin", methods=['POST'])(self.dologin)
+        self.route("/logout", methods=['GET'])(self.logout)
         self.route("/robots.txt", methods=['GET'])(self.render_robots_txt)
         self.route("/serviceWorker.min.js", methods=['GET'])(
             self.render_service_worker_js)
@@ -95,6 +98,41 @@ class Pogom(Flask):
 
     def render_service_worker_js(self):
         return send_from_directory('static/dist/js', 'serviceWorker.min.js')
+
+    def render_login(self):
+        return render_template('login.html',
+                    login_wrong=False,
+                    login_unconfirmed=False)
+                    
+    def dologin(self):
+        if request.method == "POST":
+            username = request.form["username"]
+            password = request.form["password"]
+            user = Users.get_user_by_name_and_pass(username, password)
+            if user:
+                if user['verified']==0:
+                    return render_template('login.html', login_never_paid=True)
+                if user['active']==0:
+                    return render_template('login.html', login_plata_expirata=True)
+                if user['active']==-1:
+                    return render_template('login.html', login_never_paid=True)
+                #user valid :)
+                response = redirect("/")
+                response.set_cookie('RoPokeMap', str(user['id']))
+                return response
+                
+            user1 = Users.get_user_by_name(username)
+            if user1:
+                return render_template('login.html',
+                    login_wrong_password=True)
+                    
+            return render_template('login.html',
+                    login_wrong_username=True)    
+
+    def logout(self):
+        response = redirect("/")
+        response.set_cookie('RoPokeMap', '', expires=0)
+        return response  
 
     def get_bookmarklet(self):
         args = get_args()
@@ -187,6 +225,18 @@ class Pogom(Flask):
         return self.get_search_control()
 
     def fullmap(self):
+        user_not_found = True
+        user_id = request.cookies.get('RoPokeMap')
+        if user_id:
+            user = Users.get_user_by_id(user_id)
+            if user:
+                # Success!
+                user_not_found = False
+                
+        if user_not_found:
+            response = redirect("/login")
+            return response
+        
         self.heartbeat[0] = now()
         args = get_args()
         if args.on_demand_timeout > 0:
@@ -218,7 +268,9 @@ class Pogom(Flask):
                                lng=map_lng,
                                gmaps_key=args.gmaps_key,
                                lang=args.locale,
-                               show=visibility_flags
+                               show=visibility_flags,
+                               username=user['username'],
+                               active_until=user['active_until']
                                )
 
     def raw_data(self):
